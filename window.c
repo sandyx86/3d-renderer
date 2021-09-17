@@ -7,7 +7,8 @@ global_variable bool isRunning = true;
 
 struct Framebuffer
 {
-    void *buffer;
+    void *vm; //vm = video memory
+    void *scnb; //scnb = screen buffer
     int width;
     int height;
     BITMAPINFO bmi;
@@ -40,22 +41,32 @@ LRESULT CALLBACK window_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         {
             RECT rect;
             GetClientRect(hwnd, &rect);
-            fb.width = rect.right - rect.left;
-            fb.height = rect.bottom - rect.top;
+            //fb.width = rect.right - rect.left;
+            //fb.height = rect.bottom - rect.top;
 
-            printf("%d %d %d %d\n", rect.right, rect.left, rect.top, rect.bottom);
+            fb.width = 640;
+            fb.height = 480;
+
+            //printf("%d %d %d %d\n", rect.right, rect.left, rect.top, rect.bottom);
 
             int bufferSize = fb.width * fb.height * sizeof(unsigned int);
 
-            //if(fb.buffer) VirtualFree(fb.buffer, 0, MEM_RELEASE);
-            //fb.buffer = VirtualAlloc(0, bufferSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+            //if(fb.vm) VirtualFree(fb.vm, 0, MEM_RELEASE);
+            //fb.vm = VirtualAlloc(0, bufferSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
-            if(fb.buffer)
+            if(fb.vm)
             {
-                free(fb.buffer);
-                fb.buffer = (int*)malloc(bufferSize);
+                free(fb.vm);
+                fb.vm = (unsigned int*)malloc(bufferSize);
             }
-            else fb.buffer = (int*)malloc(bufferSize);
+            else fb.vm = (unsigned int*)malloc(bufferSize);
+
+            if(fb.scnb)
+            {
+                free(fb.scnb);
+                fb.scnb = (unsigned int*)malloc(bufferSize);
+            }
+            else fb.scnb = (unsigned int*)malloc(bufferSize);
 
             fb.bmi.bmiHeader.biSize = sizeof(fb.bmi.bmiHeader);
             fb.bmi.bmiHeader.biWidth = fb.width;
@@ -81,7 +92,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     RegisterClass(&wc);
 
-    HWND window = CreateWindow(wc.lpszClassName, "View Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 640 + 16, 480 + 39, 0, 0, hInstance, 0);
+    HWND window = CreateWindow(wc.lpszClassName, "View Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 640, 480, 0, 0, hInstance, 0);
     HDC hdc = GetDC(window);
 
 
@@ -98,7 +109,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         run();
         
         //render
-        StretchDIBits(hdc, 0, 0, fb.width, fb.height, 0, 0, fb.width, fb.height,fb.buffer, &fb.bmi, DIB_RGB_COLORS, SRCCOPY);
+        StretchDIBits(hdc, 0, 0, fb.width, fb.height, 0, 0, fb.width, fb.height,fb.vm, &fb.bmi, DIB_RGB_COLORS, SRCCOPY);
     }
     return 0;
 }

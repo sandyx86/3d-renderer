@@ -1,7 +1,17 @@
+int v = 0;
+int h = 0;
 void run()
-{
-    for(int i = 0; i < 30; i++)
+{    
+    drawHLine(0, 0 + v++, 640, 0xff0000);
+    drawVLine(0 + h++, 0, 480, 0x00ff00);
+    if(v >= 480)
     {
-        drawVLine(60 + i, 60, 100, 0xff0000); //draws 30 lines starting at (60, 60) to (90, 100)
+        v = 0;
     }
+
+    if(h >= 640)
+    {
+        h = 0;
+    }
+    pushFrame(fb.vm, fb.scnb);
 }
