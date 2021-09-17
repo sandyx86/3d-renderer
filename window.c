@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include "utils.c"
 
 global_variable bool isRunning = true;
@@ -42,6 +43,8 @@ LRESULT CALLBACK window_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
             fb.width = rect.right - rect.left;
             fb.height = rect.bottom - rect.top;
 
+            printf("%d %d %d %d\n", rect.right, rect.left, rect.top, rect.bottom);
+
             int bufferSize = fb.width * fb.height * sizeof(unsigned int);
 
             //if(fb.buffer) VirtualFree(fb.buffer, 0, MEM_RELEASE);
@@ -78,7 +81,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     RegisterClass(&wc);
 
-    HWND window = CreateWindow(wc.lpszClassName, "View Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 640, 480, 0, 0, hInstance, 0);
+    HWND window = CreateWindow(wc.lpszClassName, "View Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 640 + 16, 480 + 39, 0, 0, hInstance, 0);
     HDC hdc = GetDC(window);
 
 
@@ -94,7 +97,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         //simulate
         run();
         
-
         //render
         StretchDIBits(hdc, 0, 0, fb.width, fb.height, 0, 0, fb.width, fb.height,fb.buffer, &fb.bmi, DIB_RGB_COLORS, SRCCOPY);
     }
