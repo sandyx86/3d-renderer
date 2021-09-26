@@ -1,18 +1,18 @@
-#include <stdio.h> //for testing stuff with printf
+//#include <stdio.h> //for testing stuff with printf
 
 //need a way to not go out of bounds of memory
-//possibly need an extra framebuffer to make animated things work
+
+//const int cx = fb.width / 2; //center points so that pixels can be drawn relative to a center
+//const int cy = fb.height / 2;
+
 
 
 static void renderNothing()
 {
     unsigned int *pixel = (unsigned int*)fb.scnb; //a pixel pointer to draw the pixels
-    for(int y = 0; y < fb.height; y++)
+    for(int b = 0; b < fb.height * fb.width; b++)
     {
-        for(int x = 0; x < fb.width; x++)
-        {
-            *pixel++ = 0;
-        }
+        *pixel++ = 0;
     }
 }
 
@@ -69,8 +69,9 @@ static void drawPixel_PartialScan(int ix, int iy, unsigned int color)
     *pixel = color;
 }
 
+
+//  to map a 2d grid of pixels to 1d for direct memory manipulation - pixel = h_width(y) + x
 /*
-    to map a 2d grid of pixels to 1d for direct memory manipulation - pixel = h_width(y) + x
     ptrChange() adds the number of the intended pixel to the initial address pointed to
     by *pixel
 */
@@ -78,8 +79,6 @@ static void drawPixel(int ix, int iy, unsigned int color)
 {
     unsigned int *pixel = (unsigned int*)fb.scnb;
     ptrChange(&pixel, fb.width * iy + ix);
-    //ptrChange(&pixel, fb.width * iy + ix);
-    
     *pixel = color;
 }
 
@@ -103,9 +102,34 @@ static void drawVLine(int x0, int y0, int y1, unsigned int color) //(x, y, y')
 
 
 //y = mx + b
-static void bLine(int x0, int y0, int x1, int y1, unsigned int color)
+//y = (dy - dx) * x //b is constant so its unnecessary
+
+// (0, 0)
+// (3, 7)
+
+
+/*
+    if dx is greater than dy = low slope line
+    if dx is not greater than dy = high slope line  
+*/
+static void drawLine(int x0, int y0, int x1, int y1, unsigned int color)
 {
-    int dx = x1 - x0;
-    int dy = y1 - y0;
-    
+    signed int dx = x1 - x0;
+    signed int dy = y1 - y0;
+    signed int p = (2*dy) - dx;
+    signed int y = y0;
+
+    for(signed int x = x0; x <= x1; x++)
+    {
+        drawPixel(x, y, color);
+        if(p >= 1)
+        {
+            y++;
+            p += 2*dy - 2*dx;
+        }
+        else
+        {
+            p = 2*dy;
+        }
+    }
 }

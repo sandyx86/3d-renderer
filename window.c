@@ -8,7 +8,7 @@ global_variable bool isRunning = true;
 struct Framebuffer
 {
     void *vm; //vm = video memory
-    void *scnb; //scnb = screen buffer
+    void *scnb; //scnb = backbuffer
     int width;
     int height;
     BITMAPINFO bmi;
@@ -41,15 +41,14 @@ LRESULT CALLBACK window_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         {
             RECT rect;
             GetClientRect(hwnd, &rect);
-            //fb.width = rect.right - rect.left;
-            //fb.height = rect.bottom - rect.top;
-
-            fb.width = 640;
-            fb.height = 480;
-
-            //printf("%d %d %d %d\n", rect.right, rect.left, rect.top, rect.bottom);
+            AdjustWindowRect(&rect, CS_HREDRAW | CS_VREDRAW, 0);
+            fb.width = rect.right - rect.left;
+            fb.height = rect.bottom - rect.top;
+            //printf("%d", fb.width);
+            
 
             int bufferSize = fb.width * fb.height * sizeof(unsigned int);
+            printf("%d, %d", rect.right, rect.bottom);
 
             //if(fb.vm) VirtualFree(fb.vm, 0, MEM_RELEASE);
             //fb.vm = VirtualAlloc(0, bufferSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
@@ -92,7 +91,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     RegisterClass(&wc);
 
-    HWND window = CreateWindow(wc.lpszClassName, "View Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 640, 480, 0, 0, hInstance, 0);
+    HWND window = CreateWindow(wc.lpszClassName, "View Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 640 + 16, 480 + 39, 0, 0, hInstance, 0);
     HDC hdc = GetDC(window);
 
 
