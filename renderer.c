@@ -130,20 +130,25 @@ static void drawVLine(int x0, int y0, int y1, unsigned int color) //(x, y, y')
     if dx is not greater than dy = high slope line  
     bitshifting instead of multiplying by 2? good?
 */
-static void drawLine(signed int x0, signed int y0, signed int x1, signed int y1, unsigned int color)
+static void drawLine(const signed int x0, const signed int y0, const signed int x1, const signed int y1, unsigned int color)
 {
-    signed int dx = x1 - x0;
-    signed int dy = y1 - y0;
-    signed int p = (dy - dx)<<1;
+    const signed int dx = x1 - x0;
+    const signed int dy = y1 - y0;
+    printf("\ndy(%d)\n",dy);
+    signed int p = abs((dy - dx)<<1);
     //signed int y = y0;
     signed int x = x0;
     signed int y = y0;
 
-    
-    if((dx > 0 && dy > 0) || (dx < 0 && dy < 0))
+    /*
+        if dx and dy are both positive or both negative,
+        then the line has positive slope
+        else the line has negative slope
+    */
+    if(y0 >= y1 && x0 >= x1)
     {
-        //printf("Positively Sloped Line\n");
-        if(dy < dx)
+        //printf("why\n");
+        if(dy < dx) // positive slope, higher change in x than y
         {
             for(x; x <= x1 && y < fb.width; x++)
             {
@@ -159,12 +164,13 @@ static void drawLine(signed int x0, signed int y0, signed int x1, signed int y1,
                 }
             }
         }
-        else
+        else // positive slope, higher change in y than x
         {
             for(y; y <= y1 && y < fb.width; y++)
             {
                 if(p >= 0)
                 {
+                    //printf("no\n");
                     drawPixel(x++, y, color);
                     p += (dx - dy)<<1;
                 }
@@ -178,34 +184,41 @@ static void drawLine(signed int x0, signed int y0, signed int x1, signed int y1,
     }
     else
     {
-        //printf("Negatively Sloped Line\n");
-        if(!(dy > dx))
+        if(dy < dx)
         {
+            printf("\ndx(%d) is greater than dy(%d)\n", dx, dy);
             for(x; x <= x1; x++)
             {
-                if(p <= 0)
+                if(p < 0)
                 {
+                    printf("test(%d)\n",y);
+                    printf("p(%d)\n", p);
                     drawPixel(x, y--, color);
-                    p += (dy - dx)<<1;
+                    //printf("\n%d where is y incrementing\n %d what is p\n", y, p);
+                    p += (dx - dy)<<1;
+                    //printf("%d += (%d - %d)\n", p, dx, dy);
                 }
                 else
                 {
                     drawPixel(x, y, color);
-                    p += dy<<1;
+                    p += dx<<1;
                 }
             }
         }
         else
         {
-            for(y; y <= y1; y)
+            printf("\ndy(%d) is greater than dx(%d)\n", dy, dx);
+            for(y; y <= y1 && y < fb.width; 0)
             {
                 if(p <= 0)
                 {
-                    drawPixel(x--, y, color);
-                    p += (dx - dy)<<1;
+                    //printf("nothing should be printed here\n");
+                    drawPixel(x++, y, color);
+                    p += (dy - dx)<<1;
                 }
                 else
                 {
+                    
                     drawPixel(x, y, color);
                     p += dx<<1;
                 }

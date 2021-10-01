@@ -9,8 +9,8 @@ int v = 0;
 
 void run()
 {
-    drawLine(0, 100, 200, 0, 0xff0000);
-    drawLine(0, 0, 100, 100, 0x00ff00);
+    drawLine(0, 100, 100, 50, 0xff0000);
+    //drawLine(0, 0, 100, 100, 0x00ff00);
     
     pushFrame(fb.vm, fb.scnb);
 }
