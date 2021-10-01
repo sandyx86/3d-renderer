@@ -1,4 +1,6 @@
-//#include <stdio.h> //for testing stuff with printf
+#include <stdio.h> //for testing stuff with printf
+
+
 
 //need a way to not go out of bounds of memory
 
@@ -15,6 +17,19 @@ static void renderNothing()
         *pixel++ = 0;
     }
 }
+
+static void renderBackground(unsigned int iy, unsigned int ix, unsigned int color, unsigned char size)
+{
+    unsigned int *pixel = (unsigned int*)fb.scnb;
+    for(int y = 0; y < fb.height; y++)
+    {
+        for(int x = 0; x < fb.width; x++)
+        {
+            *pixel++ = (((y*y/size)+iy) + ((x*x/size)+ix)) * color;
+        }
+    }
+}
+
 
 //pushes the frame in the buffer to video memory, then clears the buffer. may there be a more efficient way to do this?
 static void pushFrame(unsigned int* d, unsigned int* buffer)
@@ -59,10 +74,10 @@ static void drawPixel_FullScan(int ix, int iy, unsigned int color)
 /*
     scans the screen until it reaches the intended pixel
 */
-static void drawPixel_PartialScan(int ix, int iy, unsigned int color)
+static void drawPixel_PartialScan(signed int ix, signed int iy, unsigned int color)
 {
     unsigned int *pixel = (unsigned int*)fb.scnb;
-    for(int i = 0; i < fb.width * iy + ix; i++)
+    for(int i = 0; i < (fb.width * iy) + ix; i++)
     {
         *pixel++;
     }
@@ -74,11 +89,13 @@ static void drawPixel_PartialScan(int ix, int iy, unsigned int color)
 /*
     ptrChange() adds the number of the intended pixel to the initial address pointed to
     by *pixel
+
+    ix and iy needs clamped?
 */
-static void drawPixel(int ix, int iy, unsigned int color)
+static void drawPixel(unsigned int ix, unsigned int iy, unsigned int color)
 {
     unsigned int *pixel = (unsigned int*)fb.scnb;
-    ptrChange(&pixel, fb.width * iy + ix);
+    ptrChange(&pixel, (fb.width) * iy + ix);
     *pixel = color;
 }
 
@@ -111,25 +128,88 @@ static void drawVLine(int x0, int y0, int y1, unsigned int color) //(x, y, y')
 /*
     if dx is greater than dy = low slope line
     if dx is not greater than dy = high slope line  
+    bitshifting instead of multiplying by 2? good?
 */
-static void drawLine(int x0, int y0, int x1, int y1, unsigned int color)
+static void drawLine(signed int x0, signed int y0, signed int x1, signed int y1, unsigned int color)
 {
     signed int dx = x1 - x0;
     signed int dy = y1 - y0;
-    signed int p = (2*dy) - dx;
+    signed int p = (dy - dx)<<1;
+    //signed int y = y0;
+    signed int x = x0;
     signed int y = y0;
 
-    for(signed int x = x0; x <= x1; x++)
+    
+    if((dx > 0 && dy > 0) || (dx < 0 && dy < 0))
     {
-        drawPixel(x, y, color);
-        if(p >= 1)
+        //printf("Positively Sloped Line\n");
+        if(dy < dx)
         {
-            y++;
-            p += 2*dy - 2*dx;
+            for(x; x <= x1 && y < fb.width; x++)
+            {
+                if(p >= 0)
+                {
+                    drawPixel(x, y++, color);
+                    p += (dy - dx)<<1;
+                }
+                else
+                {
+                    drawPixel(x, y, color);
+                    p += dy<<1;
+                }
+            }
         }
         else
         {
-            p = 2*dy;
+            for(y; y <= y1 && y < fb.width; y++)
+            {
+                if(p >= 0)
+                {
+                    drawPixel(x++, y, color);
+                    p += (dx - dy)<<1;
+                }
+                else
+                {
+                    drawPixel(x, y, color);
+                    p +=dx<<1;
+                }
+            }
+        }
+    }
+    else
+    {
+        //printf("Negatively Sloped Line\n");
+        if(!(dy > dx))
+        {
+            for(x; x <= x1; x++)
+            {
+                if(p <= 0)
+                {
+                    drawPixel(x, y--, color);
+                    p += (dy - dx)<<1;
+                }
+                else
+                {
+                    drawPixel(x, y, color);
+                    p += dy<<1;
+                }
+            }
+        }
+        else
+        {
+            for(y; y <= y1; y)
+            {
+                if(p <= 0)
+                {
+                    drawPixel(x--, y, color);
+                    p += (dx - dy)<<1;
+                }
+                else
+                {
+                    drawPixel(x, y, color);
+                    p += dx<<1;
+                }
+            }
         }
     }
 }

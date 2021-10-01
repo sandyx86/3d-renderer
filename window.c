@@ -106,7 +106,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
         //simulate
         run();
-        
         //render
         StretchDIBits(hdc, 0, 0, fb.width, fb.height, 0, 0, fb.width, fb.height,fb.vm, &fb.bmi, DIB_RGB_COLORS, SRCCOPY);
     }
